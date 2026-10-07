@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#efeee8">
+  <meta name="description" content="끄는 건 당신. 켜는 건 집주인. 아무 쓸모 없는 전등 스위치 클리커 게임.">
+  <title>시끄러운 스위치 · The Annoying Light Switch</title>
+  <style>
+    :root { --paper:#efeee8; --card:#fffef8; --ink:#181818; --muted:#68685f; --line:#181818; --lime:#d6fa70; --orange:#ff916b; --border:2px solid var(--line); --shadow:5px 5px 0 var(--line); }
+    * { box-sizing:border-box; }
+    [hidden] { display:none !important; }
+    body { margin:0; background:var(--paper); color:var(--ink); font-family:"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif; transition:background-color .08s,color .08s; }
+    body.dark { --paper:#111; --card:#20201e; --ink:#f1f0e8; --muted:#b6b6a8; --line:#a6a69b; }
+    body.candle { --paper:#25231b; --card:#333023; --ink:#fff0cb; --muted:#c2b994; --line:#a59b7c; }
+    button,input { font:inherit; }
+    button { cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+    button:focus-visible,summary:focus-visible,input:focus-visible { outline:3px solid #6a55e8; outline-offset:5px; }
+    button:disabled { cursor:not-allowed; }
+    button { color:inherit; }
+    svg { display:block; }
+    .app { width:min(1120px,calc(100% - 64px)); margin:0 auto; padding:24px 0 20px; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; gap:16px; padding-bottom:17px; border-bottom:var(--border); }
+    .brand { display:flex; align-items:center; gap:10px; font-size:12px; font-weight:900; letter-spacing:1.5px; }
+    .brand-icon { width:25px; height:25px; display:grid; place-items:center; border:var(--border); background:var(--lime); color:#181818; font-size:17px; }
+    .top-actions { display:flex; gap:8px; }
+    .small-button { min-height:36px; padding:8px 12px; border:var(--border); background:var(--card); font-size:12px; font-weight:800; box-shadow:2px 2px 0 var(--line); }
+    .small-button:active { transform:translate(2px,2px); box-shadow:none; }
+    .hero { display:flex; justify-content:space-between; align-items:center; gap:24px; padding:27px 0 29px; }
+    .eyebrow { margin:0 0 9px; font-size:11px; font-weight:800; letter-spacing:2px; }
+    h1 { margin:0; font-size:clamp(36px,5vw,62px); font-weight:900; letter-spacing:-3px; line-height:1.13; }
+    h1 span { background:var(--lime); color:#181818; padding:0 7px 3px; box-decoration-break:clone; }
+    .hero-description { margin:13px 0 0; color:var(--muted); font-size:14px; line-height:1.7; }
+    .hero-stamp { flex:0 0 111px; width:111px; height:111px; border:var(--border); border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center; background:var(--orange); color:#181818; transform:rotate(10deg); text-align:center; box-shadow:3px 3px 0 var(--line); }
+    .hero-stamp strong { font-size:27px; letter-spacing:-1px; }
+    .hero-stamp small { margin:3px 0; font-size:10px; font-weight:800; }
+    .game-grid { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(0,1fr); gap:22px; }
+    .card { border:var(--border); background:var(--card); box-shadow:var(--shadow); min-width:0; }
+    .card-top { padding:14px 20px; display:flex; justify-content:space-between; gap:10px; align-items:center; border-bottom:var(--border); font-size:12px; font-weight:800; }
+    .section-number { color:var(--muted); font-variant-numeric:tabular-nums; margin-right:8px; }
+    .light-badge { border:1px solid var(--line); padding:4px 8px; display:flex; align-items:center; gap:6px; font-size:10px; letter-spacing:.4px; }
+    .status-dot { width:7px; height:7px; background:#94be23; border-radius:50%; }
+    .dark .status-dot { background:#aaa; }
+    .candle .status-dot { background:#ffc66b; }
+    .stage-surface { height:370px; position:relative; overflow:hidden; background-color:#e3e2d8; background-image:radial-gradient(#adada0 .7px,transparent .7px); background-size:15px 15px; isolation:isolate; }
+    .dark .stage-surface { background-color:#151515; background-image:radial-gradient(#35352f .7px,transparent .7px); }
+    .candle .stage-surface { background-color:#28251b; background-image:radial-gradient(#504934 .7px,transparent .7px); }
+    .wall-note { position:absolute; left:23px; top:24px; padding:7px 11px; border:2px solid #181818; background:#fffef8; color:#181818; transform:rotate(-7deg); font-size:11px; font-weight:800; box-shadow:2px 2px 0 #181818; z-index:2; }
+    .bulb-wrap { position:absolute; top:0; left:50%; transform:translateX(-50%); width:76px; height:89px; z-index:1; }
+    .bulb-cord { width:2px; height:27px; background:#181818; margin:auto; }
+    .bulb-base { width:20px; height:13px; border:2px solid #181818; margin:auto; background:#727269; }
+    .bulb { width:43px; height:46px; margin:-2px auto 0; background:#f5ffb1; border:2px solid #181818; border-radius:45% 45% 50% 50%; box-shadow:0 0 35px 18px #d6fa7057; }
+    .bulb::after { content:""; display:block; width:13px; height:14px; border:2px solid #938e50; border-bottom:0; border-radius:40%; margin:8px auto; }
+    .dark .bulb,.candle .bulb { background:#5d5d50; box-shadow:none; }
+    .bulb-rays { position:absolute; inset:39px 0 0; border-left:2px solid #b8be78; border-right:2px solid #b8be78; height:30px; border-radius:40%; }
+    .dark .bulb-rays,.candle .bulb-rays { opacity:0; }
+    .switch-dock { position:absolute; left:50%; top:56%; width:156px; height:204px; transform:translate(-50%,-50%); z-index:5; }
+    .switch-card { position:relative; width:100%; height:100%; background:#f8f7f0; color:#181818; border:3px solid #181818; border-radius:9px; padding:34px 37px; box-shadow:7px 7px 0 #18181832,inset 0 0 0 4px #e3e2d9; transition:transform .12s; }
+    .switch-card.inverted { transform:rotate(180deg); }
+    .screw { position:absolute; left:calc(50% - 5px); width:10px; height:10px; border:1.5px solid #8a8a7e; border-radius:50%; background:linear-gradient(65deg,transparent 43%,#8a8a7e 45%,#8a8a7e 55%,transparent 57%); }
+    .screw.top { top:12px; } .screw.bottom { bottom:12px; }
+    .switch-button { padding:0; display:block; position:relative; width:76px; height:131px; border:2px solid #181818; border-radius:5px; background:#d1d0c6; color:#181818; box-shadow:inset 0 0 0 4px #aead9f; }
+    .rocker { position:absolute; inset:5px; border:1px solid #76766b; border-radius:3px; display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:14px 0; background:linear-gradient(180deg,#fffef8 0%,#f1f0e8 72%,#bcbbae 100%); box-shadow:0 5px 0 #727269; transform:perspective(230px) rotateX(-10deg); transition:transform .07s,box-shadow .07s,background .07s; }
+    .rocker .on-mark { font-size:23px; font-weight:800; line-height:1; }
+    .rocker .off-mark { font-size:23px; font-weight:400; line-height:1; color:#8b8b7d; }
+    .switch-button.off .rocker { background:linear-gradient(180deg,#bab9ad,#f8f7ee 28%,#fffef8); transform:perspective(230px) rotateX(10deg); box-shadow:0 -5px 0 #727269; }
+    .switch-button.off .on-mark { color:#8b8b7d; } .switch-button.off .off-mark { color:#181818; }
+    .switch-button.kick { animation:click-kick .13s; }
+    @keyframes click-kick { 50% { transform:translateY(2px) scale(.975); } }
+    .switch-legend { position:absolute; left:0; right:0; bottom:26px; text-align:center; color:#59594e; font-size:9px; font-weight:900; letter-spacing:2px; pointer-events:none; }
+    .switch-tape { position:absolute; left:12px; right:12px; top:74px; padding:13px 0; background:#e8c887e8; color:#514221; border-top:1px dashed #b09869; border-bottom:1px dashed #b09869; transform:rotate(-13deg); font-size:11px; font-weight:900; text-align:center; pointer-events:none; z-index:8; }
+    .stage-hint { position:absolute; bottom:15px; left:15px; right:15px; text-align:center; font-size:11px; color:var(--muted); pointer-events:none; z-index:2; }
+    .click-float { position:absolute; left:50%; top:40%; transform:translateX(-50%); padding:5px 10px; border:2px solid #181818; color:#181818; background:var(--lime); font-size:13px; font-weight:900; pointer-events:none; z-index:10; animation:float-up .6s ease-out forwards; }
+    @keyframes float-up { to { opacity:0; transform:translate(-50%,-45px) rotate(-5deg); } }
+    .npc-strip { border-top:var(--border); display:flex; align-items:center; padding:14px 20px; gap:16px; min-height:106px; }
+    .npc-portrait { width:72px; height:72px; flex:0 0 72px; border:2px solid #181818; background:#ffc9ae; color:#181818; overflow:hidden; }
+    .npc-portrait svg { width:100%; height:100%; }
+    .npc-portrait .eyebrow-left,.npc-portrait .eyebrow-right { transform-box:fill-box; transform-origin:center; transition:transform .2s; }
+    body[data-stage="2"] .eyebrow-left { transform:rotate(15deg); } body[data-stage="2"] .eyebrow-right { transform:rotate(-15deg); }
+    body[data-stage="3"] .eyebrow-left { transform:rotate(25deg); } body[data-stage="3"] .eyebrow-right { transform:rotate(-25deg); }
+    body[data-stage="3"] .npc-portrait { background:#ff916b; }
+    body[data-stage="4"] .npc-portrait { background:#dfcb91; }
+    body[data-stage="4"] .eye { transform:scaleY(.25); transform-box:fill-box; transform-origin:center; }
+    .npc-copy { min-width:0; }
+    .npc-label { display:flex; align-items:center; gap:7px; font-size:10px; color:var(--muted); margin-bottom:8px; font-weight:800; }
+    .stage-pill { padding:3px 6px; background:var(--ink); color:var(--card); font-size:9px; }
+    .npc-quote { margin:0; font-size:clamp(17px,1.9vw,22px); line-height:1.4; font-weight:900; letter-spacing:-.8px; overflow-wrap:anywhere; }
+    .anger-panel { padding:16px 20px 17px; border-top:var(--border); }
+    .anger-heading { display:flex; justify-content:space-between; align-items:center; font-size:11px; font-weight:800; margin-bottom:8px; }
+    .anger-heading strong { font-size:19px; font-variant-numeric:tabular-nums; }
+    .calm-countdown { display:block; margin-top:4px; color:var(--muted); font-size:9px; font-weight:400; line-height:1.5; }
+    .anger-track { height:15px; border:var(--border); background:var(--paper); overflow:hidden; }
+    .anger-fill { width:0; height:100%; background:var(--lime); transition:width .2s; background-image:repeating-linear-gradient(90deg,transparent 0 15px,#18181826 15px 16px); }
+    body[data-stage="2"] .anger-fill { background-color:#f8da6d; } body[data-stage="3"] .anger-fill { background-color:#ff805e; } body[data-stage="4"] .anger-fill { background-color:#cebb86; }
+    .phase-labels { display:flex; justify-content:space-between; margin-top:7px; color:var(--muted); font-size:9px; }
+    .report-top { background:var(--lime); color:#181818; border-bottom:2px solid #181818; align-items:flex-start; }
+    .report-top .section-number { color:#545d39; }
+    .report-top h2 { margin:5px 0 0; font-size:22px; letter-spacing:-1px; }
+    .live-tag { border:1px solid #181818; display:flex; align-items:center; gap:5px; padding:4px 6px; font-size:9px; }
+    .live-tag i { width:5px; height:5px; background:#181818; border-radius:50%; }
+    .metric { padding:21px 20px; border-bottom:1px solid var(--line); }
+    .metric-label { display:flex; align-items:center; gap:7px; margin:0 0 12px; color:var(--muted); font-size:11px; font-weight:700; }
+    .metric-icon { width:19px; height:19px; display:grid; place-items:center; color:var(--ink); font-size:16px; }
+    .metric-value { margin:0; font-size:31px; font-weight:900; font-variant-numeric:tabular-nums; letter-spacing:-1.2px; line-height:1.15; white-space:nowrap; }
+    .metric-value.climate { font-size:25px; letter-spacing:-1px; }
+    .metric-value small { font-size:13px; font-weight:700; letter-spacing:0; margin-left:4px; }
+    .metric-footnote { margin:9px 0 0; color:var(--muted); font-size:10px; line-height:1.7; overflow-wrap:anywhere; }
+    .metric-value.probability { color:#de6347; }
+    .report-bottom { padding:16px 20px; display:flex; justify-content:space-between; align-items:center; gap:10px; font-size:11px; }
+    .report-bottom strong { font-size:23px; font-variant-numeric:tabular-nums; }
+    .useless-tag { border:1px solid var(--line); padding:4px 6px; font-size:9px; font-weight:800; transform:rotate(-4deg); }
+    .event-ticker { display:flex; gap:12px; align-items:center; padding:12px 15px; margin-top:21px; border:var(--border); background:var(--card); font-size:11px; min-height:44px; }
+    .event-ticker strong { flex-shrink:0; font-size:9px; border:1px solid var(--line); padding:3px 6px; }
+    .event-ticker span { line-height:1.6; }
+    .footer { display:flex; justify-content:space-between; gap:14px; color:var(--muted); font-size:10px; padding:17px 1px 4px; line-height:1.7; }
+    .manual { margin-top:7px; font-size:10px; color:var(--muted); line-height:1.8; }
+    .manual summary { cursor:pointer; width:fit-content; font-weight:700; }
+    .manual p { margin:8px 0; }
+    .candle-prop { position:absolute; bottom:56px; right:14%; z-index:3; width:36px; height:75px; }
+    .candle-wax { position:absolute; bottom:0; width:30px; height:56px; background:#edce8d; border:2px solid #181818; border-radius:4px 4px 0 0; box-shadow:0 0 55px 23px #ffc45f25; }
+    .candle-wax::after { content:""; display:block; width:6px; height:15px; border-radius:0 0 4px 4px; background:#fff0bf; margin:0 0 0 4px; }
+    .candle-flame { position:absolute; left:5px; bottom:56px; width:19px; height:30px; border-radius:65% 35% 50% 50%; background:#ffd777; box-shadow:0 0 16px 5px #ffa52b6b; transform:rotate(5deg); animation:flame 1s ease-in-out infinite alternate; }
+    @keyframes flame { to { transform:rotate(-5deg) scaleX(.86); } }
+    .fly { position:absolute; left:calc(50% + 10px); top:calc(56% - 30px); z-index:9; width:48px; height:45px; border:0; background:none; padding:2px; filter:drop-shadow(1px 3px 1px #18181835); animation:fly-orbit 1.8s linear infinite; }
+    .fly:nth-child(2) { animation-delay:-.9s; }
+    @keyframes fly-orbit { 0%,100% { transform:translate(-40px,-10px) rotate(-15deg); } 25% { transform:translate(20px,40px) rotate(25deg); } 50% { transform:translate(-20px,5px) rotate(-10deg); } 75% { transform:translate(35px,-35px) rotate(15deg); } }
+    .mirror-ball { position:absolute; z-index:8; top:26px; left:calc(50% - 34px); width:68px; height:68px; border:2px solid #181818; border-radius:50%; background:repeating-linear-gradient(90deg,transparent 0 9px,#5557 9px 11px),repeating-linear-gradient(0deg,#e9e9e9 0 9px,#555 9px 11px); box-shadow:inset -13px -8px 14px #18181865,0 0 40px #ffffff50; animation:ball-spin 3s linear infinite; }
+    .mirror-ball::before { content:""; position:absolute; height:27px; top:-27px; left:31px; border-left:2px solid #181818; }
+    @keyframes ball-spin { to { transform:rotate(360deg); } }
+    .club-lights { position:absolute; inset:0; z-index:3; pointer-events:none; opacity:.6; background:conic-gradient(from 0deg at 50% 0%,transparent 0 20deg,#de57a6 20deg 45deg,transparent 45deg 85deg,#9af563 85deg 125deg,transparent 125deg 150deg,#6bb8ff 150deg 175deg,transparent 175deg); animation:club-lights 1.3s ease-in-out infinite alternate; }
+    @keyframes club-lights { to { filter:hue-rotate(130deg); transform:scaleX(-1); opacity:.38; } }
+    .dance-label { position:absolute; z-index:7; top:101px; left:0; right:0; text-align:center; font-size:15px; font-weight:900; color:#181818; text-shadow:1px 1px #fff; }
+    body.party .npc-portrait { animation:dance .45s ease-in-out infinite alternate; }
+    @keyframes dance { to { transform:rotate(8deg) translateY(-2px); } }
+    .app.shake { animation:shake .3s; }
+    @keyframes shake { 20%,60% { transform:translate(-4px,2px); } 40%,80% { transform:translate(4px,-2px); } }
+    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:120; max-width:calc(100% - 32px); padding:12px 18px; border:2px solid #181818; box-shadow:4px 4px 0 #181818; background:#d6fa70; color:#181818; font-size:12px; font-weight:800; text-align:center; line-height:1.6; pointer-events:none; }
+    .modal-backdrop { position:fixed; inset:0; z-index:100; background:#181818aa; display:grid; place-items:center; padding:24px; overflow:auto; }
+    .modal { width:min(540px,100%); max-height:calc(100dvh - 48px); overflow:auto; border:3px solid #181818; color:#181818; background:#fffef8; box-shadow:8px 8px 0 #181818; }
+    .modal-header { display:flex; justify-content:space-between; align-items:center; gap:10px; border-bottom:2px solid #181818; padding:13px 19px; font-size:10px; font-weight:900; background:#e8e7df; }
+    .modal-close { width:32px; height:32px; font-size:22px; border:2px solid #181818; background:#fffef8; color:#181818; }
+    .modal-body { padding:28px; }
+    .modal h2 { margin:10px 0 16px; font-size:31px; line-height:1.3; letter-spacing:-1.5px; }
+    .modal p { font-size:13px; line-height:1.9; margin:0 0 17px; }
+    .modal-eyebrow { font-size:10px; font-weight:900; letter-spacing:1px; }
+    .modal-icon { font-size:44px; line-height:1.2; }
+    .check-row { border:2px solid #181818; padding:17px; display:flex; align-items:center; gap:12px; background:#efeee8; font-size:13px; font-weight:800; cursor:pointer; margin:15px 0; }
+    .check-row input { width:22px; height:22px; accent-color:#181818; flex-shrink:0; }
+    .primary-button { width:100%; min-height:47px; padding:12px 17px; border:2px solid #181818; background:#d6fa70; color:#181818; font-size:13px; font-weight:900; box-shadow:4px 4px 0 #181818; }
+    .primary-button:active { transform:translate(3px,3px); box-shadow:1px 1px 0 #181818; }
+    .primary-button:disabled { opacity:.5; box-shadow:none; }
+    .modal-note { margin-top:18px !important; margin-bottom:0 !important; font-size:10px !important; color:#69695b; }
+    .modal.ad-modal { width:min(880px,100%); background:#d6fa70; }
+    .ad-modal .modal-header { background:#d6fa70; }
+    .ad-modal .modal-body { text-align:center; padding:30px; }
+    .ad-modal h2 { font-size:clamp(39px,7vw,76px); line-height:1.15; font-weight:900; letter-spacing:-3px; }
+    .ad-bowl { font-size:75px; margin:10px 0; }
+    .ad-deal { display:inline-block; background:#181818; color:#d6fa70; padding:9px 14px; font-size:13px; font-weight:800; transform:rotate(-3deg); }
+    .ad-real-close { border:0; background:none; text-decoration:underline; font-size:11px; color:#414735; padding:14px; margin-top:12px; }
+    .ad-modal .modal-close { background:#ff916b; }
+    .ad-fake-caption { font-size:9px; margin-left:auto; }
+    .maintenance-number { font-size:80px; font-weight:900; line-height:1; margin:22px 0; text-align:center; }
+    .maintenance-bar { height:13px; background:#dddcd3; border:2px solid #181818; overflow:hidden; }
+    .maintenance-bar div { height:100%; width:0; background:#d6fa70; }
+    .policy { background:#efeee8; border:1px solid #181818; padding:15px; max-height:180px; overflow:auto; margin-bottom:18px; }
+    .policy p { font-size:11px; margin:0 0 10px; }
+    .policy p:last-child { margin:0; }
+    .bsod { position:fixed; inset:0; z-index:110; background:#0064b8; color:#fff; padding:clamp(35px,9vw,120px); overflow:auto; font-family:"Segoe UI","Malgun Gothic",sans-serif; }
+    .bsod-face { font-size:110px; line-height:1; font-weight:300; margin-bottom:25px; }
+    .bsod p { max-width:720px; font-size:clamp(16px,2vw,23px); line-height:1.6; }
+    .bsod small { display:block; font-size:12px; line-height:1.8; margin-top:28px; }
+    .visually-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    .stage-surface:not(.source-ceiling) .bulb { background:#5d5d50; box-shadow:none; }
+    .stage-surface:not(.source-ceiling) .bulb-rays { opacity:0; }
+    .backup-light { position:absolute; bottom:66px; pointer-events:none; z-index:2; color:#181818; text-align:center; }
+    .backup-light small { display:block; font-size:9px; font-weight:900; margin-top:8px; color:var(--muted); }
+    .backup-lamp { left:7%; width:62px; }
+    .lamp-shade { position:relative; width:60px; height:37px; border:2px solid #181818; background:#989689; clip-path:polygon(20% 0,80% 0,100% 100%,0 100%); }
+    .lamp-pole { width:5px; height:61px; background:#55544b; border:1px solid #181818; margin:auto; }
+    .lamp-foot { height:8px; width:49px; border:2px solid #181818; background:#a3a191; border-radius:50%; margin:auto; }
+    .source-lamp .lamp-shade { background:#fff29f; }
+    .source-lamp .backup-lamp::before { content:""; position:absolute; width:145px; height:160px; left:-40px; top:-25px; background:radial-gradient(ellipse,#ffe78995,transparent 65%); z-index:-1; }
+    .source-lamp .backup-lamp small,.source-fridge .backup-fridge small { color:#62500f; }
+    .backup-fridge { right:5%; width:65px; }
+    .fridge-case { position:relative; height:111px; width:60px; border:2px solid #181818; border-radius:4px; background:#b5b9b0; overflow:visible; }
+    .fridge-inside { position:absolute; inset:6px; background:#8b9187; border:1px solid #181818; }
+    .fridge-inside::before { content:'🥛'; display:block; border-bottom:2px solid #747b6f; padding-top:28px; font-size:18px; }
+    .fridge-door { position:absolute; inset:0; background:#d6dbd1; border-left:1px solid #181818; transform-origin:left; transition:transform .16s; }
+    .fridge-door::before { content:""; position:absolute; left:0; right:0; top:34px; border-top:2px solid #181818; }
+    .fridge-door::after { content:""; position:absolute; right:6px; top:47px; width:4px; height:21px; background:#666b61; }
+    .source-fridge .fridge-door { transform:perspective(130px) rotateY(-68deg); }
+    .source-fridge .fridge-inside { background:#fff5ba; box-shadow:0 0 45px 22px #fff0a45c; }
+    .switch-card.golden { background:linear-gradient(120deg,#fff3b0,#dfb649 50%,#fff0a0); box-shadow:7px 7px 0 #18181832,inset 0 0 0 4px #b88b30; }
+    .golden .switch-button { background:#d9b54b; box-shadow:inset 0 0 0 4px #b38a24; }
+    .golden .rocker { background:linear-gradient(180deg,#fff2a8,#e7c761 72%,#ae8127); border-color:#937028; }
+    .golden .switch-button.off .rocker { background:linear-gradient(180deg,#ae8127,#e7c761 28%,#fff2a8); }
+    .round-actions { display:flex; align-items:center; gap:12px; margin-top:14px; padding-top:12px; border-top:1px dashed var(--line); }
+    .round-actions .small-button { flex-shrink:0; background:var(--orange); color:#181818; }
+    .round-actions .small-button:disabled { background:var(--paper); color:var(--muted); box-shadow:none; }
+    .round-actions p { font-size:10px; line-height:1.6; color:var(--muted); margin:0; }
+    .last-round-summary { margin:12px 0 0; padding:9px 10px; background:var(--lime); color:#181818; font-size:10px; font-weight:800; line-height:1.7; }
+    .repair-receipt { border-top:1px dashed var(--line); margin-top:15px; padding-top:10px; }
+    .repair-receipt p { display:flex; justify-content:space-between; gap:10px; margin:6px 0 0; font-size:10px; }
+    .repair-receipt strong { font-variant-numeric:tabular-nums; overflow-wrap:anywhere; text-align:right; }
+    .repair-receipt .net-loss { color:#de6347; font-size:12px; }
+    .receipt-note { display:block; font-size:9px; color:var(--muted); margin-top:8px; line-height:1.7; }
+    .extras-grid { display:grid; grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr); gap:22px; margin-top:22px; align-items:start; }
+    .extra-title { font-size:17px; font-weight:900; margin:3px 0 0; letter-spacing:-.5px; }
+    .points-badge { flex-shrink:0; border:var(--border); background:var(--lime); color:#181818; padding:7px 9px; font-size:13px; font-weight:900; }
+    .toy-body { padding:21px; }
+    .shop-item { display:flex; align-items:center; gap:19px; margin-bottom:21px; }
+    .golden-preview { flex:0 0 72px; width:72px; height:92px; border:3px solid #181818; border-radius:7px; display:grid; place-items:center; background:linear-gradient(120deg,#fff3b0,#dfb649,#fff0a0); box-shadow:4px 4px 0 #181818; }
+    .golden-preview span { display:flex; flex-direction:column; align-items:center; justify-content:space-around; width:30px; height:58px; border:2px solid #6a501b; background:linear-gradient(#fff3b0,#d8b14b); font-size:13px; color:#181818; font-weight:900; }
+    .shop-copy h3 { margin:0 0 8px; font-size:20px; font-weight:900; }
+    .shop-copy p { margin:0; font-size:11px; line-height:1.8; color:var(--muted); }
+    .shop-footer { font-size:10px; line-height:1.8; margin:16px 0 0; color:var(--muted); }
+    .achievement-list { display:grid; grid-template-columns:1fr 1fr; gap:10px; list-style:none; margin:0; padding:17px; }
+    .achievement-item { display:flex; align-items:flex-start; gap:10px; padding:12px 10px; border:1px dashed var(--line); background:var(--paper); min-width:0; }
+    .achievement-icon { flex:0 0 30px; width:30px; height:30px; border:1px solid var(--line); display:grid; place-items:center; font-size:19px; color:var(--muted); }
+    .achievement-item strong { display:block; font-size:11px; line-height:1.6; }
+    .achievement-item p { margin:4px 0; font-size:9px; line-height:1.6; color:var(--muted); }
+    .achievement-item small { font-size:8px; color:var(--muted); }
+    .achievement-item.unlocked { border:1px solid var(--line); background:var(--card); }
+    .unlocked .achievement-icon { background:var(--lime); color:#181818; border-color:#181818; }
+    .unlocked small { color:var(--ink); font-weight:900; }
+    .achievement-count { font-size:13px; white-space:nowrap; }
+    .round-report { margin-top:22px; }
+    .round-report .card-top { background:var(--orange); color:#181818; border-color:#181818; }
+    .round-report .section-number { color:#603825; }
+    .report-placeholder { padding:28px 22px; color:var(--muted); font-size:12px; line-height:1.8; margin:0; }
+    .score-body { padding:22px; }
+    .score-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:20px; }
+    .score-heading h3 { font-size:26px; letter-spacing:-1px; margin:0 0 7px; }
+    .score-heading p { font-size:11px; color:var(--muted); margin:0; line-height:1.7; }
+    .landlord-wins { border:3px solid #db6345; color:#db6345; padding:10px 13px; transform:rotate(-5deg); font-size:18px; font-weight:900; flex-shrink:0; }
+    .score-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:0; }
+    .score-grid div { border:1px solid var(--line); padding:13px; background:var(--paper); }
+    .score-grid dt { color:var(--muted); font-size:10px; line-height:1.6; }
+    .score-grid dd { margin:7px 0 0; font-size:20px; font-weight:900; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+    .score-grid dd.money-score { font-size:15px; color:#de6347; }
+    .score-conclusion { border-top:1px dashed var(--line); margin:20px 0 0; padding-top:14px; font-size:12px; font-weight:800; line-height:1.8; }
+    .report-reveal { animation:report-reveal .4s ease-out; }
+    @keyframes report-reveal { from { transform:translateY(12px); opacity:.3; } }
+    .achievement-celebration { position:fixed; inset:0; pointer-events:none; z-index:119; overflow:hidden; }
+    .achievement-banner { position:absolute; top:24px; left:50%; transform:translateX(-50%); width:max-content; max-width:calc(100% - 32px); border:3px solid #181818; box-shadow:6px 6px 0 #181818; color:#181818; background:#ffe389; padding:16px 23px; text-align:center; }
+    .achievement-banner small { font-size:10px; font-weight:900; letter-spacing:2px; }
+    .achievement-banner strong { display:block; font-size:20px; margin:7px 0; line-height:1.4; }
+    .achievement-banner p { margin:0; font-size:11px; }
+    .confetti { position:absolute; top:-20px; left:var(--x); width:9px; height:15px; background:var(--color); animation:confetti 1.9s ease-in var(--delay) both; }
+    @keyframes confetti { to { transform:translate(var(--drift),105vh) rotate(720deg); } }
+    .candle-button { width:64px; height:102px; border:0; padding:0; background:transparent; }
+    .candle-button .candle-wax { left:17px; bottom:18px; }
+    .candle-button .candle-flame { left:22px; bottom:74px; }
+    .candle-label { position:absolute; bottom:0; left:0; right:0; color:#ffedaf; font-size:10px; font-weight:900; white-space:nowrap; }
+    .candle-button:hover .candle-flame { filter:brightness(1.25); }
+    .player-wins { color:#181818; border-color:#181818; background:var(--lime); }
+    body.blackout { background:#000; overflow:hidden; }
+    body.blackout #app { visibility:hidden; }
+    .blackout-layer { position:fixed; inset:0; z-index:1000; background:#000; cursor:default; }
+    @media (max-width:760px) { .extras-grid { grid-template-columns:1fr; } .score-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .backup-lamp { left:3%; } .backup-fridge { right:2%; } .score-heading h3 { font-size:23px; } }
+    @media (max-width:400px) { .achievement-list { grid-template-columns:1fr; } .light-badge { font-size:9px; padding:4px 5px; } .round-actions { gap:10px; } .round-actions .small-button { min-height:40px; padding:8px 12px; } .score-body { padding:17px; } .score-heading { gap:10px; } .landlord-wins { font-size:14px; padding:8px; } .backup-light { transform:scale(.86); transform-origin:bottom; } .achievement-banner strong { font-size:17px; } }
+    @media (max-width:760px) { .app { width:calc(100% - 32px); padding-top:16px; } .game-grid { grid-template-columns:1fr; gap:22px; } .hero { gap:10px; padding:24px 0; } .hero-stamp { width:80px; height:80px; flex-basis:80px; } .hero-stamp strong { font-size:21px; } .hero-stamp small { font-size:8px; } h1 { font-size:clamp(32px,6.5vw,49px); letter-spacing:-2px; } .hero-description { font-size:12px; } .stage-surface { height:350px; } .metric { padding:18px 20px; } .metric-value.climate { font-size:28px; } .footer { flex-direction:column; gap:4px; } .npc-quote { font-size:19px; } .modal-backdrop { padding:16px; } .modal { max-height:calc(100dvh - 32px); } }
+    @media (max-width:400px) { .brand { font-size:10px; gap:7px; letter-spacing:.5px; } .small-button { font-size:10px; padding:7px 8px; } .hero-stamp { display:none; } h1 { font-size:39px; } .eyebrow { font-size:9px; letter-spacing:1.5px; } .npc-strip { padding:14px; gap:12px; } .npc-portrait { width:60px; height:60px; flex-basis:60px; } .npc-quote { font-size:17px; } .card-top { padding:13px 15px; } .modal-body { padding:23px; } .modal h2 { font-size:27px; } .ad-modal h2 { font-size:40px; } .wall-note { left:15px; top:24px; font-size:10px; } }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; } .club-lights { opacity:.35; } }
+  </style>
+</head>
+<body data-stage="1">
+  <main class="app" id="app">
+    <header class="topbar">
+      <div class="brand"><span class="brand-icon" aria-hidden="true">↯</span> USELESS LAB / 무쓸모 연구소</div>
+      <div class="top-actions">
+        <button class="small-button" id="sound-toggle" type="button" aria-pressed="false" title="효과음 음소거">효과음 켜짐</button>
+        <button class="small-button" id="reset-button" type="button" title="게임 처음부터 다시 시작">처음부터 ↺</button>
+      </div>
+    </header>
+    <section class="hero" aria-labelledby="game-title">
+      <div>
+        <p class="eyebrow">THE ANNOYING LIGHT SWITCH</p>
+        <h1 id="game-title">시끄러운 <span>스위치.</span></h1>
+        <p class="hero-description">끄는 건 당신. 켜는 건 집주인.<br>지구를 구하기엔 너무 작고, 집주인을 빡치게 하기엔 충분한 클릭.</p>
+      </div>
+      <div class="hero-stamp" aria-label="생산성 0퍼센트"><small>인증받지 않은</small><strong>0%</strong><small>생산성 보장</small></div>
+    </section>
+    <div class="game-grid">
+      <section class="card play-card" aria-label="스위치 게임">
+        <div class="card-top"><span><span class="section-number">01 /</span> 스위치 실험실</span><span class="light-badge"><i class="status-dot" aria-hidden="true"></i><span id="light-status">불 켜짐 · ON</span></span></div>
+        <div class="stage-surface source-ceiling" id="stage-surface">
+          <div class="wall-note" aria-hidden="true">건들지 마시오.</div>
+          <div class="bulb-wrap" aria-hidden="true"><div class="bulb-cord"></div><div class="bulb-base"></div><div class="bulb"></div><div class="bulb-rays"></div></div>
+          <div class="backup-light backup-lamp" aria-hidden="true"><div class="lamp-shade"></div><div class="lamp-pole"></div><div class="lamp-foot"></div><small>스탠드</small></div>
+          <div class="backup-light backup-fridge" aria-hidden="true"><div class="fridge-case"><div class="fridge-inside"></div><div class="fridge-door"></div></div><small>냉장고</small></div>
+          <div class="switch-dock" id="switch-dock">
+            <div class="switch-card" id="switch-card">
+              <i class="screw top" aria-hidden="true"></i><i class="screw bottom" aria-hidden="true"></i>
+              <button class="switch-button" id="switch-button" type="button" aria-label="전등 끄기" aria-pressed="true" aria-describedby="stage-hint">
+                <span class="rocker" aria-hidden="true"><span class="on-mark">I</span><span class="off-mark">O</span></span>
+              </button>
+              <span class="switch-legend" aria-hidden="true">DO NOT TOUCH</span>
+              <div class="switch-tape" id="switch-tape" hidden>철벽 방어 · 3번 눌러 제거</div>
+            </div>
+          </div>
+          <button class="candle-prop candle-button" id="candle-prop" type="button" hidden aria-label="마지막 촛불 끄기 · 5단계 완전 암전"><span class="candle-flame" aria-hidden="true"></span><span class="candle-wax" aria-hidden="true"></span><span class="candle-label" aria-hidden="true">촛불 끄기</span></button>
+          <div id="fly-layer" hidden>
+            <button class="fly" type="button" aria-label="스위치를 방해하는 파리">
+              <svg viewBox="0 0 44 40" aria-hidden="true"><ellipse cx="12" cy="15" rx="11" ry="7" fill="#eef4fa" stroke="#181818" stroke-width="1.5" transform="rotate(-28 12 15)"/><ellipse cx="32" cy="15" rx="11" ry="7" fill="#eef4fa" stroke="#181818" stroke-width="1.5" transform="rotate(28 32 15)"/><ellipse cx="22" cy="24" rx="7" ry="10" fill="#292927" stroke="#181818" stroke-width="2"/><circle cx="22" cy="12" r="7" fill="#181818"/><circle cx="18" cy="11" r="3" fill="#ff916b"/><circle cx="26" cy="11" r="3" fill="#ff916b"/><path d="M16 24L9 29M28 24L35 29M17 30L12 36M27 30L32 36" stroke="#181818" stroke-width="2"/></svg>
+            </button>
+            <button class="fly" type="button" aria-label="또 다른 방해 파리">
+              <svg viewBox="0 0 44 40" aria-hidden="true"><ellipse cx="12" cy="15" rx="11" ry="7" fill="#eef4fa" stroke="#181818" stroke-width="1.5"/><ellipse cx="32" cy="15" rx="11" ry="7" fill="#eef4fa" stroke="#181818" stroke-width="1.5"/><ellipse cx="22" cy="24" rx="7" ry="10" fill="#292927"/><circle cx="22" cy="12" r="7" fill="#181818"/><circle cx="18" cy="11" r="3" fill="#ff916b"/><circle cx="26" cy="11" r="3" fill="#ff916b"/></svg>
+            </button>
+          </div>
+          <div id="club-layer" hidden aria-hidden="true"><div class="club-lights"></div><div class="mirror-ball"></div><div class="dance-label">퇴근은 못 해도 댄스는 해야지.</div></div>
+          <p class="stage-hint" id="stage-hint">마우스 클릭 / 터치 · 한 번만 꺼보세요.</p>
+        </div>
+        <div class="npc-strip">
+          <div class="npc-portrait" aria-hidden="true">
+            <svg viewBox="0 0 100 100"><path d="M8 100C10 72 24 72 50 72S90 74 94 100" fill="#ed7357" stroke="#181818" stroke-width="3"/><path d="M40 68V81Q50 90 60 81V68" fill="#f4b687" stroke="#181818" stroke-width="3"/><ellipse cx="22" cy="48" rx="7" ry="10" fill="#ffcda3" stroke="#181818" stroke-width="3"/><ellipse cx="78" cy="48" rx="7" ry="10" fill="#ffcda3" stroke="#181818" stroke-width="3"/><path d="M22 37C22 10 77 10 78 37V55C78 84 22 84 22 55Z" fill="#ffd0a8" stroke="#181818" stroke-width="3"/><path d="M22 36V24Q23 11 35 12Q45 1 58 10Q78 8 79 29V39L68 28L28 34Z" fill="#272725" stroke="#181818" stroke-width="3"/><path class="eyebrow-left" d="M31 41L43 40" stroke="#181818" stroke-width="4" stroke-linecap="round"/><path class="eyebrow-right" d="M57 40L69 41" stroke="#181818" stroke-width="4" stroke-linecap="round"/><circle class="eye" cx="37" cy="49" r="3" fill="#181818"/><circle class="eye" cx="63" cy="49" r="3" fill="#181818"/><path d="M49 50L46 58H52" fill="none" stroke="#ce9266" stroke-width="2"/><path id="npc-mouth" d="M41 65Q50 68 59 65" fill="none" stroke="#181818" stroke-width="3" stroke-linecap="round"/><path d="M26 92H36M67 92H77" stroke="#181818" stroke-width="2"/></svg>
+          </div>
+          <div class="npc-copy"><div class="npc-label">집주인 <span class="stage-pill" id="stage-name">1단계 · 평온</span></div><p class="npc-quote" id="npc-quote" aria-live="polite" aria-atomic="true">“전기세는 내가 내는데?”</p></div>
+        </div>
+        <div class="anger-panel">
+          <div class="anger-heading"><span>집주인의 분노 게이지<small class="calm-countdown" id="calm-countdown">100%가 되면 30초 후 평온해집니다.</small></span><strong id="anger-text">0%</strong></div>
+          <div class="anger-track" role="progressbar" aria-label="집주인의 분노" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="anger-track"><div class="anger-fill" id="anger-fill"></div></div>
+          <div class="phase-labels"><span>평온</span><span>짜증</span><span>폭발</span><span>해탈</span><span>암전</span></div>
+          <div class="round-actions"><button class="small-button" id="apology-button" type="button" disabled>사과하기 ♡</button><p id="apology-hint">불을 한 번 끄고 사과해 보세요.<br>집주인이 받아줄지는 모르겠습니다.</p></div>
+          <p class="last-round-summary" id="last-round-summary" hidden></p>
+        </div>
+      </section>
+      <aside class="card report-card" aria-labelledby="report-title">
+        <div class="card-top report-top"><div><span class="section-number">02 / 절약 리포트</span><h2 id="report-title">세상을 구한 기록</h2></div><span class="live-tag"><i aria-hidden="true"></i> LIVE</span></div>
+        <section class="metric"><h3 class="metric-label"><span class="metric-icon" aria-hidden="true">◉</span> 지구 온난화 지연 시간</h3><p class="metric-value climate"><span id="stat-warming">+0.000000000</span><small>초</small></p><p class="metric-footnote">북극곰이 눈치채기엔 조금 부족합니다.</p></section>
+        <section class="metric"><h3 class="metric-label"><span class="metric-icon" aria-hidden="true">₩</span> 아낀 전깃세</h3><p class="metric-value"><span id="stat-money">0.0000</span><small>원</small></p><p class="metric-footnote">국밥 한 그릇까지 <strong id="stat-remaining">1,245,000,000</strong>번 남음</p><div class="repair-receipt"><p><span>스위치 수리비</span><strong><span id="stat-repair">0</span>원</strong></p><p class="net-loss"><span>실시간 순손익</span><strong><span id="stat-balance">0.0000</span>원</strong></p><small class="receipt-note">한 번 끌 때마다 수리비 300원. 집주인이 웃습니다.</small></div></section>
+        <section class="metric"><h3 class="metric-label"><span class="metric-icon" aria-hidden="true">↗</span> 집주인의 스트레스 수치</h3><p class="metric-value"><span id="stat-stress">0</span><small>Pa</small></p><p class="metric-footnote">인간관계는 재생 가능한 자원이 아닙니다.</p></section>
+        <section class="metric"><h3 class="metric-label"><span class="metric-icon" aria-hidden="true">⌘</span> 이 시간에 공부했으면 서울대 갔을 확률</h3><p class="metric-value probability"><span id="stat-chance">0.00</span><small>%</small></p><p class="metric-footnote">지금이라도 책을 펴면… 아니, 한 번만 더.</p></section>
+        <div class="report-bottom"><span>총 헛수고 <strong id="click-count">0</strong>회</span><span class="useless-tag">정밀함 ★★★★★ / 쓸모 ☆☆☆☆☆</span></div>
+      </aside>
+    </div>
+    <div class="event-ticker" role="status" aria-live="polite"><strong id="event-label">민원 접수 대기</strong><span id="event-message">매 클릭마다 15% 확률로 집주인의 방해 공작이 시작됩니다.</span></div>
+    <div class="extras-grid">
+      <section class="card" aria-labelledby="shop-title">
+        <div class="card-top"><div><span class="section-number">03 / 쓸모없는 상점</span><h2 class="extra-title" id="shop-title">허영심도 장비입니다.</h2></div><span class="points-badge"><span id="point-count">0</span>P</span></div>
+        <div class="toy-body"><div class="shop-item"><div class="golden-preview" aria-hidden="true"><span><i>I</i><i>O</i></span></div><div class="shop-copy"><h3>황금 스위치</h3><p>성능 변화: 0%<br>허영심: +200%<br>찰칵 소리만 조금 고급스럽습니다.</p></div></div><button class="primary-button" id="buy-golden" type="button" disabled>황금 스위치 구매 · 999,999P</button><p class="shop-footer" id="shop-status">한 번에 1P. 가격은 999,999P. 구경은 무료입니다.</p></div>
+      </section>
+      <section class="card" aria-labelledby="achievement-title">
+        <div class="card-top"><div><span class="section-number">04 / 무보상 업적</span><h2 class="extra-title" id="achievement-title">쓸모없음의 증명서</h2></div><span class="achievement-count" id="achievement-count">0 / 8</span></div>
+        <ul class="achievement-list" id="achievement-list"></ul>
+      </section>
+    </div>
+    <section class="card round-report" id="round-report" aria-labelledby="round-report-title">
+      <div class="card-top"><div><span class="section-number">05 / 해탈 성적표</span><h2 class="extra-title" id="round-report-title">집주인이 직접 채점합니다.</h2></div><span id="report-number">발급 대기</span></div>
+      <p class="report-placeholder" id="report-placeholder">분노 100%에 도달하고 30초 뒤 성적표가 도착합니다.<br>마지막 촛불까지 끄면 이번에는 당신이 이깁니다.</p>
+      <div class="score-body" id="score-body" hidden>
+        <div class="score-heading"><div><h3 id="report-grade">입문 헛수고</h3><p>평가: 해탈 후 30초 / 생산성: 0% / 이의 신청: 집주인에게</p></div><strong class="landlord-wins" id="report-verdict">집주인 승</strong></div>
+        <dl class="score-grid"><div><dt>끈 횟수</dt><dd id="report-clicks">0회</dd></div><div><dt>최고 분노</dt><dd id="report-peak">0%</dd></div><div><dt>사과 횟수</dt><dd id="report-apologies">0회</dd></div><div><dt>아낀 전깃세</dt><dd class="money-score" id="report-saved">0.0000원</dd></div><div><dt>스위치 수리비</dt><dd class="money-score" id="report-repair">0원</dd></div><div><dt>이번 주기의 순손익</dt><dd class="money-score" id="report-balance">0.0000원</dd></div></dl>
+        <p class="score-conclusion">최종 상태: <span id="report-final-light">켜짐</span>. <span id="report-comment">열심히 누르셨군요. 전기는 계속 들어옵니다.</span></p>
+      </div>
+    </section>
+    <div class="footer"><span>쓸모없음을 위해 쓸데없이 정성껏 만들었습니다.</span><span>목표: 없습니다. · 저장: 안 합니다. · 집주인: 포기 안 합니다.</span></div>
+    <details class="manual"><summary>실험 매뉴얼 / 방해 이벤트 10종</summary><p>스위치와 촛불은 직접 마우스로 클릭하거나 모바일에서 터치해 주세요. 스페이스바와 엔터키로는 작동하지 않습니다. 스위치를 끌 때마다 분노가 1% 오릅니다. 사과 없이 100회 누르면 집주인이 현대 문명을 포기합니다. 사과의 역효과로 더 빨리 해탈할 수도 있습니다. 분노 100%에 도달한 순간부터 30초 뒤 분노가 0%로 돌아갑니다. 그 전에는 시간 제한이 없습니다.</p><p>4단계의 촛불을 직접 누르면 5단계 완전 암전입니다. 화면 전체가 검게 되고 게임 조작도 멈춥니다. 100% 달성 후 시작된 30초 주기가 끝나면 화면과 전등이 돌아오고 성적표에 ‘최종 꺼짐 / 당신 승’이 기록됩니다.</p><p>테이프는 3번 눌러 제거합니다. 팝업에서는 먼저 안내를 완료하거나 ESC로 닫으세요. 블루스크린은 1초, 점검은 3초 뒤 자동 종료됩니다.</p><p>방해 이벤트는 15% 확률로 10종 중 하나가 나옵니다. 디스코 하나만 보면 약 1.5%라 쉽게 안 나올 수도 있습니다.</p><p>가짜 CAPTCHA · 도망가는 스위치 · 가짜 광고 · 파리 · 가짜 블루스크린 · 가짜 점검 · 거꾸로 스위치 · 미러볼 클럽 · 동의서 · 테이프</p><p>NPC 대사는 텍스트만 표시합니다. 상단 버튼으로 클릭·비프 효과음을 끌 수 있습니다.</p></details>
+    <p class="manual">집주인은 스탠드 → 냉장고 → 전등 순으로 반격합니다. 끄기 성공마다 수리비 300원과 1P가 쌓입니다. 황금 스위치는 999,999P, 사과는 잠깐 -1% 뒤 +6%. 업적은 보상 없이 지급하며 해탈 성적표는 매 분노 주기가 끝날 때 새로 발급됩니다. 포인트·구매·업적은 분노 초기화 후에도 유지됩니다.</p>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <div class="achievement-celebration" id="achievement-celebration" hidden><div id="confetti-layer" aria-hidden="true"></div><div class="achievement-banner" role="status" aria-live="polite"><small>USELESS ACHIEVEMENT</small><strong id="achievement-announcement">쓸모없는 업적 달성</strong><p>보상: 없습니다. 축하만 받으세요.</p></div></div>
+  <div class="modal-backdrop" id="modal-backdrop" hidden><section class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1"></section></div>
+  <div class="bsod" id="bsod" role="dialog" aria-modal="true" aria-labelledby="bsod-title" tabindex="-1" hidden><div class="bsod-face">:(</div><p id="bsod-title">전등에 문제가 발생하여 다시 켜야 합니다.<br>쓸데없는 클릭 정보를 수집하고 있습니다.</p><p><span id="bsod-progress">0</span>% 완료</p><small>중지 코드: STOP_TURNING_OFF_THE_LIGHT<br>게임 속 가짜 블루스크린입니다. 1초 후 정상 복귀합니다.</small></div>
+  <div class="blackout-layer" id="blackout-layer" hidden><span class="visually-hidden" role="status" aria-live="polite">5단계 완전 암전. 모든 불빛을 껐습니다. 분노 100% 달성 후 30초가 지나면 화면이 돌아옵니다.</span></div>
+  <noscript><p style="padding:24px">이 게임은 JavaScript를 켜야 실행됩니다. 집주인도 기다리고 있습니다.</p></noscript>
+  <script id="game-code">
+  (() => {
+    'use strict';
+    const EVENT_TYPES = Object.freeze(['captcha','escape','ad','fly','bsod','maintenance','invert','disco','consent','tape']);
+    const MODAL_TYPES = new Set(['captcha','ad','bsod','maintenance','consent']);
+    const EVENT_DURATION = { escape:5500, fly:5000, bsod:1000, maintenance:3000, invert:5000, disco:3000 };
+    const CALM_DURATION=30000;
+    const GOLDEN_PRICE=999999;
+    const ACHIEVEMENTS=Object.freeze([
+      { id:'first', icon:'↯', title:'아직도 켜짐', description:'첫 번째 헛수고에 성공하기' },
+      { id:'broke', icon:'₩', title:'국밥으로부터 가장 먼 사람', description:'수리비를 내며 10회 끄기' },
+      { id:'tape', icon:'▧', title:'테이프 제거 전문가', description:'테이프를 3번 눌러 제거하기' },
+      { id:'apology', icon:'♡', title:'사과의 역효과', description:'사과하고 더 혼나기' },
+      { id:'golden', icon:'✦', title:'황금빛 헛수고', description:'성능이 같은 황금 스위치 사기' },
+      { id:'candle', icon:'♨', title:'문명 퇴장 요원', description:'집주인을 해탈시키기' },
+      { id:'minute', icon:'◷', title:'해탈 후 30초를 낭비함', description:'해탈 성적표 받기' },
+      { id:'hundred', icon:'★', title:'국가공인 전등 불청객', description:'누적 100회 끄기' }
+    ]);
+    function isDirectPointerClick(event) {
+      return Boolean(event && event.type==='click' && event.isTrusted &&
+        (event.detail>0 || event.pointerType==='touch' || event.pointerType==='pen'));
+    }
+
+    // The state model also runs without a DOM for deterministic verification.
+    class SwitchGame {
+      constructor({ random=Math.random, now=Date.now, schedule=(fn,delay)=>setTimeout(fn,delay), cancel=id=>clearTimeout(id), onChange=()=>{} }={}) {
+        this.random=random; this.now=now; this.schedule=schedule; this.cancel=cancel; this.onChange=onChange;
+        this.timers=new Set(); this.eventSerial=0; this.disposed=false;
+        this.count=0; this.anger=0; this.lit=true; this.candle=false; this.event=null; this.tapeRemaining=0;
+        this.calmEndsAt=null; this.calmTimer=null; this.lightTimer=null;
+        this.resetExtras();
+      }
+      resetExtras() {
+        this.lightSource='ceiling'; this.points=0; this.golden=false; this.blackout=false;
+        this.achievements=new Set(); this.apologies=0; this.apologyPending=false; this.apologyTimer=null;
+        this.cycle=null; this.cycleNumber=0; this.lastReport=null;
+      }
+      getSnapshot() {
+        return {
+          count:this.count, anger:this.anger, lit:this.lit, candle:this.candle, blackout:this.blackout,
+          lightSource:this.candle ? 'candle' : this.lit ? this.lightSource : 'none',
+          points:this.points, golden:this.golden, achievements:[...this.achievements],
+          apologies:this.apologies, apologyPending:this.apologyPending,
+          lastReport:this.lastReport ? { ...this.lastReport } : null,
+          stage:this.blackout ? 5 : this.anger<25 ? 1 : this.anger<50 ? 2 : this.anger<100 ? 3 : 4,
+          event:this.event ? { ...this.event } : null, tapeRemaining:this.tapeRemaining,
+          calmRemainingMs:this.calmEndsAt===null ? 0 : Math.max(0,this.calmEndsAt-this.now()),
+          stats:{ warming:(this.count/1e9).toFixed(9), money:(this.count*0.0004).toFixed(4), stress:this.count*89400,
+            chance:this.count ? (-this.count*0.02).toFixed(2) : '0.00', remaining:Math.max(0,1245000000-this.count),
+            repair:this.count*300, balance:(this.count*0.0004-this.count*300).toFixed(4) }
+        };
+      }
+      emit(reason, details={}) { if (!this.disposed) this.onChange(this.getSnapshot(),{ reason,...details }); }
+      queue(fn, delay) {
+        const id=this.schedule(() => { this.timers.delete(id); if (!this.disposed) fn(); },delay);
+        this.timers.add(id); return id;
+      }
+      cancelTimer(id) { if (id!==null) { this.cancel(id); this.timers.delete(id); } }
+      award(id, unlocked) {
+        if (!this.achievements.has(id)) { this.achievements.add(id); unlocked.push(id); }
+      }
+      recordPeak() { if (this.cycle) this.cycle.peakAnger=Math.max(this.cycle.peakAnger,this.anger); }
+      enterCandle(unlocked) {
+        if (this.anger<100 || this.candle) return false;
+        this.candle=true; this.lit=true; this.lightSource='candle';
+        this.cancelTimer(this.lightTimer); this.lightTimer=null;
+        this.calmEndsAt=this.now()+CALM_DURATION;
+        this.calmTimer=this.queue(() => this.coolDown(),CALM_DURATION);
+        this.award('candle',unlocked); return true;
+      }
+      coolDown() {
+        if (this.disposed || !this.cycle) return;
+        const unlocked=[];
+        const round=this.cycle;
+        this.lastReport={ number:round.number, clicks:round.clicks, apologies:round.apologies, peakAnger:round.peakAnger,
+          saved:(round.clicks*0.0004).toFixed(4), repair:round.clicks*300,
+          balance:(round.clicks*0.0004-round.clicks*300).toFixed(4), finalLight:this.blackout ? '꺼짐' : '켜짐',
+          verdict:this.blackout ? '당신 승' : '집주인 승',
+          grade:this.blackout ? '전설의 암전' : round.clicks>=100 ? 'S급 헛수고' : round.clicks>=50 ? 'A급 헛수고' : 'B급 헛수고' };
+        this.award('minute',unlocked);
+        this.cancelTimer(this.calmTimer); this.cancelTimer(this.lightTimer);
+        this.cancelTimer(this.apologyTimer); this.apologyTimer=null; this.apologyPending=false;
+        this.calmTimer=null; this.lightTimer=null; this.calmEndsAt=null;
+        this.anger=0; this.candle=false; this.blackout=false; this.lit=true; this.lightSource='ceiling'; this.cycle=null;
+        this.emit('calm-down',{ unlocked });
+      }
+      press() {
+        if (this.disposed) return false;
+        if (this.calmEndsAt!==null && this.now()>=this.calmEndsAt) this.coolDown();
+        if (this.blackout || !this.lit || (this.event && MODAL_TYPES.has(this.event.type))) return false;
+        const unlocked=[];
+        if (this.tapeRemaining>0) {
+          this.tapeRemaining--;
+          if (this.tapeRemaining>0) { this.emit('tape'); return false; }
+          this.award('tape',unlocked);
+          this.finishEvent(this.event.id);
+        }
+        if (!this.cycle) {
+          this.cycle={ number:++this.cycleNumber, clicks:0, apologies:0, peakAnger:0 };
+        }
+        this.count++; this.points++; this.cycle.clicks++; this.anger=Math.min(100,this.anger+1);
+        this.recordPeak();
+        this.award('first',unlocked);
+        if (this.count>=10) this.award('broke',unlocked);
+        if (this.count>=100) this.award('hundred',unlocked);
+        const candleReached=this.enterCandle(unlocked);
+        this.lit=this.candle;
+        const stage=this.getSnapshot().stage;
+        const delay=stage===1 ? 300+Math.floor(this.random()*301) : stage===2 ? 100 : stage===3 ? 100+Math.floor(this.random()*81) : 0;
+        this.emit('off',{ delay,candleReached,unlocked });
+        if (!this.candle) {
+          const turn=this.count;
+          this.lightTimer=this.queue(() => {
+            this.lightTimer=null;
+            if (this.count===turn) {
+              this.lit=true; this.lightSource=['lamp','fridge','ceiling'][(turn-1)%3];
+              this.emit('restore',{ delay });
+            }
+          },delay);
+        }
+        if (!this.event && this.random()<0.15) this.triggerEvent(EVENT_TYPES[Math.min(9,Math.floor(this.random()*10))]);
+        return true;
+      }
+      buyGolden() {
+        if (this.disposed || this.blackout || this.golden || this.points<GOLDEN_PRICE || (this.event && MODAL_TYPES.has(this.event.type))) return false;
+        this.points-=GOLDEN_PRICE; this.golden=true;
+        const unlocked=[]; this.award('golden',unlocked);
+        this.emit('purchase',{ unlocked }); return true;
+      }
+      apologize() {
+        if (this.disposed) return false;
+        if (this.calmEndsAt!==null && this.now()>=this.calmEndsAt) this.coolDown();
+        if (!this.anger || !this.lit || this.candle || this.apologyPending || (this.event && MODAL_TYPES.has(this.event.type))) return false;
+        this.apologies++; this.cycle.apologies++; this.apologyPending=true;
+        this.anger=Math.max(0,this.anger-1); this.emit('apology');
+        this.apologyTimer=this.queue(() => {
+          this.apologyTimer=null; this.apologyPending=false;
+          this.anger=Math.min(100,this.anger+6); this.recordPeak();
+          const unlocked=[]; this.award('apology',unlocked);
+          const candleReached=this.enterCandle(unlocked);
+          this.emit('apology-backfire',{ candleReached,unlocked });
+        },450);
+        return true;
+      }
+      extinguishCandle() {
+        if (this.disposed) return false;
+        if (this.calmEndsAt!==null && this.now()>=this.calmEndsAt) this.coolDown();
+        if (!this.candle || this.blackout || (this.event && MODAL_TYPES.has(this.event.type))) return false;
+        for (const id of this.timers) if (id!==this.calmTimer) this.cancelTimer(id);
+        this.lightTimer=null; this.apologyTimer=null; this.apologyPending=false;
+        this.event=null; this.tapeRemaining=0; this.eventSerial++;
+        this.candle=false; this.lit=false; this.blackout=true; this.lightSource='none';
+        this.emit('blackout'); return true;
+      }
+      triggerEvent(type) {
+        if (this.disposed || this.blackout || this.event || !EVENT_TYPES.includes(type)) return false;
+        const id=++this.eventSerial;
+        const duration=EVENT_DURATION[type] || 0;
+        this.event={ id,type,started:this.now(),duration };
+        if (type==='tape') this.tapeRemaining=3;
+        this.emit('event-start');
+        if (duration) this.queue(() => this.finishEvent(id),duration);
+        return true;
+      }
+      finishEvent(id) {
+        if (!this.event || this.event.id!==id) return false;
+        const type=this.event.type;
+        this.event=null; this.tapeRemaining=0;
+        this.emit('event-end',{ type }); return true;
+      }
+      dismissEvent() {
+        if (!this.event || ['bsod','maintenance','tape'].includes(this.event.type)) return false;
+        return this.finishEvent(this.event.id);
+      }
+      reset() {
+        if (this.disposed) return;
+        for (const id of this.timers) this.cancel(id);
+        this.timers.clear(); this.eventSerial++;
+        this.count=0; this.anger=0; this.lit=true; this.candle=false; this.event=null; this.tapeRemaining=0;
+        this.calmEndsAt=null; this.calmTimer=null; this.lightTimer=null;
+        this.resetExtras();
+        this.emit('reset');
+      }
+      destroy() { for (const id of this.timers) this.cancel(id); this.timers.clear(); this.disposed=true; }
+    }
+    if (typeof module!=='undefined' && module.exports) module.exports={ SwitchGame,EVENT_TYPES,isDirectPointerClick };
+    if (typeof document==='undefined') return;
+
+    const $=id => document.getElementById(id);
+    const elements={
+      app:$('app'), surface:$('stage-surface'), dock:$('switch-dock'), card:$('switch-card'), button:$('switch-button'),
+      tape:$('switch-tape'), light:$('light-status'), quote:$('npc-quote'), stage:$('stage-name'), mouth:$('npc-mouth'),
+      anger:$('anger-text'), track:$('anger-track'), fill:$('anger-fill'), candle:$('candle-prop'),
+      warming:$('stat-warming'), money:$('stat-money'), stress:$('stat-stress'), chance:$('stat-chance'),
+      remaining:$('stat-remaining'), count:$('click-count'), eventLabel:$('event-label'), eventMessage:$('event-message'),
+      flies:$('fly-layer'), club:$('club-layer'), backdrop:$('modal-backdrop'), modal:$('modal'), bsod:$('bsod'),
+      toast:$('toast'), sound:$('sound-toggle'), reset:$('reset-button'), calmCountdown:$('calm-countdown'),
+      repair:$('stat-repair'), balance:$('stat-balance'), points:$('point-count'), buy:$('buy-golden'), shopStatus:$('shop-status'),
+      apology:$('apology-button'), apologyHint:$('apology-hint'), summary:$('last-round-summary'),
+      achievementList:$('achievement-list'), achievementCount:$('achievement-count'), celebration:$('achievement-celebration'),
+      announcement:$('achievement-announcement'), confetti:$('confetti-layer'), report:$('round-report'),
+      reportEmpty:$('report-placeholder'), score:$('score-body'), reportNumber:$('report-number'),
+      reportGrade:$('report-grade'), reportVerdict:$('report-verdict'), reportClicks:$('report-clicks'), reportPeak:$('report-peak'),
+      reportApologies:$('report-apologies'), reportSaved:$('report-saved'), reportRepair:$('report-repair'),
+      reportBalance:$('report-balance'), reportLight:$('report-final-light'), reportComment:$('report-comment'),
+      blackout:$('blackout-layer'), hint:$('stage-hint')
+    };
+    const PHASES=['평온','짜증','폭발','해탈','완전 암전'];
+    const LINES=[
+      ['누구야?','잘못 눌렀나?'],
+      ['아 진짜!','어둡다고!'],
+      ['공부 좀 하자!!!','누가 자꾸 끄냐?!'],
+      ['그래... 현대 문명을 포기하자.','마지막 촛불까지는 건들지 마.'],
+      ['...마지막 불빛까지 꺼버렸네.','이제 아무것도 안 보이네.']
+    ];
+    const EVENT_INFO={
+      captcha:['가짜 CAPTCHA','인간임을 증명하기 전에, 불을 끄고 싶은 열정부터 증명하세요.'],
+      escape:['스위치 도망','스위치도 퇴근하고 싶대요. 5.5초 동안 잘 찾아보세요.'],
+      ad:['거대 가짜 광고','닫기 버튼도 믿을 수 없는 시대. 국밥 광고가 침입했습니다.'],
+      fly:['파리 출현','파리도 집주인 편입니다. 5초 동안 클릭을 방해합니다.'],
+      bsod:['가짜 블루스크린','전등이 윈도우를 쓰나 봅니다. 1초 후 돌아옵니다.'],
+      maintenance:['가짜 시스템 점검','전력 과부하로 3초간 서버 점검 중...'],
+      invert:['스위치 착시','상하 반전. 기능은 같지만 기분은 다릅니다.'],
+      disco:['미러볼 클럽','강제 댄스 타임! 3초 동안 이 집은 클럽입니다.'],
+      consent:['동의서 서명','스위치 하나 끄는데 약관은 왜 필요한 걸까요.'],
+      tape:['스위치 테이프질','집주인의 철벽 방어. 3번 눌러 테이프를 떼세요.']
+    };
+    const number=new Intl.NumberFormat('ko-KR');
+    const moneyNumber=new Intl.NumberFormat('ko-KR',{ minimumFractionDigits:4,maximumFractionDigits:4 });
+    let muted=false;
+    let audioContext=null;
+    let eventUiTimer=null;
+    let calmUiTimer=null;
+    let toastTimer=null;
+    let achievementTimer=null;
+    let achievementSignature=null;
+    let lastEventId=null;
+    let focusBeforeDialog=null;
+    let audioUnavailable=false;
+    const animationTimers=new Set();
+    const game=new SwitchGame({ onChange:handleChange });
+    elements.achievementList.innerHTML=ACHIEVEMENTS.map(item =>
+      '<li class="achievement-item" data-achievement="'+item.id+'"><span class="achievement-icon" aria-hidden="true">'+item.icon+'</span><div><strong>'+item.title+'</strong><p>'+item.description+'</p><small>미달성 · 보상 없음</small></div></li>').join('');
+
+    function later(callback,delay) {
+      const id=setTimeout(() => { animationTimers.delete(id); callback(); },delay);
+      animationTimers.add(id); return id;
+    }
+    function showToast(message,duration=1700) {
+      clearTimeout(toastTimer);
+      elements.toast.textContent=message; elements.toast.hidden=false;
+      toastTimer=setTimeout(() => { elements.toast.hidden=true; },duration);
+    }
+    // Only synthesized clicks and beeps. NPC lines never produce audio.
+    function getAudio() {
+      if (muted || audioUnavailable) return null;
+      try {
+        const Audio=window.AudioContext || window.webkitAudioContext;
+        if (!Audio) { audioUnavailable=true; elements.sound.textContent='효과음 미지원'; return null; }
+        if (!audioContext) audioContext=new Audio();
+        if (audioContext.state==='suspended') audioContext.resume().catch(() => {});
+        return audioContext;
+      } catch (_) { audioUnavailable=true; elements.sound.textContent='효과음 미지원'; return null; }
+    }
+    function clickSound(isOn=false) {
+      const ctx=getAudio(); if (!ctx) return;
+      const oscillator=ctx.createOscillator(); const gain=ctx.createGain(); const time=ctx.currentTime;
+      const fancy=game.getSnapshot().golden;
+      oscillator.type=fancy ? 'triangle' : 'square'; oscillator.frequency.setValueAtTime((isOn ? 1100 : 1550)*(fancy ? 1.12 : 1),time);
+      oscillator.frequency.exponentialRampToValueAtTime(isOn ? 260 : 180,time+.025);
+      gain.gain.setValueAtTime(.0001,time); gain.gain.exponentialRampToValueAtTime(.045,time+.003);
+      gain.gain.exponentialRampToValueAtTime(.0001,time+.045);
+      oscillator.connect(gain); gain.connect(ctx.destination); oscillator.start(time); oscillator.stop(time+.05);
+      oscillator.onended=() => { oscillator.disconnect(); gain.disconnect(); };
+    }
+    function beep() {
+      const ctx=getAudio(); if (!ctx) return;
+      [690,890].forEach((frequency,index) => {
+        const oscillator=ctx.createOscillator(); const gain=ctx.createGain(); const time=ctx.currentTime+index*.105;
+        oscillator.type='sawtooth'; oscillator.frequency.setValueAtTime(frequency,time);
+        gain.gain.setValueAtTime(.0001,time); gain.gain.exponentialRampToValueAtTime(.018,time+.005);
+        gain.gain.exponentialRampToValueAtTime(.0001,time+.08);
+        oscillator.connect(gain); gain.connect(ctx.destination); oscillator.start(time); oscillator.stop(time+.085);
+        oscillator.onended=() => { oscillator.disconnect(); gain.disconnect(); };
+      });
+    }
+    function render(state) {
+      document.body.classList.toggle('dark',!state.lit && !state.candle);
+      document.body.classList.toggle('candle',state.candle);
+      document.body.classList.toggle('blackout',state.blackout);
+      document.body.dataset.stage=String(state.stage);
+      ['ceiling','lamp','fridge','candle','none'].forEach(source => elements.surface.classList.toggle('source-'+source,state.lightSource===source));
+      elements.card.classList.toggle('golden',state.golden);
+      elements.button.classList.toggle('off',!state.lit);
+      elements.button.setAttribute('aria-pressed',String(state.lit));
+      elements.button.setAttribute('aria-disabled',String(!state.lit));
+      elements.button.setAttribute('aria-label',state.candle ? '전등 끄기 시도 · 마지막 촛불을 직접 눌러 끄세요' : state.lit ? '전등 끄기' : '전등 꺼짐');
+      const lightLabels={ ceiling:'전등 켜짐 · ON',lamp:'스탠드 켜짐 · ON',fridge:'냉장고 열림 · ON',candle:'촛불 켜짐 · ON',none:state.blackout ? '완전 암전 · OFF' : '불 꺼짐 · OFF' };
+      elements.light.textContent=lightLabels[state.lightSource];
+      elements.stage.textContent=state.stage+'단계 · '+PHASES[state.stage-1];
+      elements.anger.textContent=state.anger+'%';
+      elements.track.setAttribute('aria-valuenow',String(state.anger));
+      elements.fill.style.width=state.anger+'%';
+      elements.warming.textContent='+'+state.stats.warming;
+      elements.money.textContent=state.stats.money;
+      elements.stress.textContent=number.format(state.stats.stress);
+      elements.chance.textContent=state.stats.chance;
+      elements.remaining.textContent=number.format(state.stats.remaining);
+      elements.count.textContent=number.format(state.count);
+      elements.repair.textContent=number.format(state.stats.repair);
+      elements.balance.textContent=moneyNumber.format(Number(state.stats.balance));
+      elements.points.textContent=number.format(state.points);
+      const modalOpen=Boolean(state.event && MODAL_TYPES.has(state.event.type));
+      elements.buy.disabled=state.golden || state.points<GOLDEN_PRICE || modalOpen;
+      elements.buy.textContent=state.golden ? '황금 스위치 장착 완료 ✦' : '황금 스위치 구매 · '+number.format(GOLDEN_PRICE)+'P';
+      elements.shopStatus.textContent=state.golden ? '구매 완료. 성능은 그대로입니다. 집주인도 별로 감동하지 않았습니다.' : '한 번에 1P. 가격은 '+number.format(GOLDEN_PRICE)+'P. 구경은 무료입니다.';
+      elements.apology.disabled=!state.anger || !state.lit || state.candle || state.apologyPending || modalOpen;
+      elements.apology.textContent=state.apologyPending ? '사과 검토 중...' : '사과하기 ♡';
+      elements.apologyHint.textContent=state.apologyPending ? '집주인이 사과를 검토하고 있습니다.' : state.candle ? '이미 현대 문명을 포기했습니다. 사과는 잠시 쉽니다.' : state.anger ? '고개를 숙이면 해결될까요? 직접 사과해 보세요.' : '불을 한 번 끄고 사과해 보세요. 받아줄지는 모르겠습니다.';
+      renderAchievements(state);
+      renderReport(state.lastReport);
+      elements.candle.hidden=!state.candle;
+      elements.candle.disabled=modalOpen || state.blackout;
+      elements.hint.textContent=state.candle ? '마지막 촛불을 클릭 / 터치해서 꺼보세요.' : '마우스 클릭 / 터치 · 한 번만 꺼보세요.';
+      syncCalmCountdown(state);
+      elements.tape.hidden=state.tapeRemaining===0;
+      elements.tape.textContent='철벽 방어 · '+state.tapeRemaining+'번 눌러 제거';
+      const mouths=['M41 65Q50 68 59 65','M41 66Q50 62 59 66','M40 62Q50 58 60 62L57 71H43Z','M40 64Q50 72 60 64','M40 66H60'];
+      elements.mouth.setAttribute('d',mouths[state.stage-1]);
+      elements.mouth.setAttribute('fill',state.stage===3 ? '#873b34' : 'none');
+      if (lastEventId!==(state.event ? state.event.id : null)) {
+        lastEventId=state.event ? state.event.id : null;
+        clearEventVisuals();
+        if (state.event) showEvent(state.event);
+      }
+      elements.blackout.hidden=!state.blackout;
+      elements.app.inert=state.blackout || modalOpen;
+    }
+    function renderAchievements(state) {
+      const signature=state.achievements.join(',');
+      if (signature===achievementSignature) return;
+      achievementSignature=signature;
+      elements.achievementCount.textContent=state.achievements.length+' / '+ACHIEVEMENTS.length;
+      elements.achievementList.querySelectorAll('[data-achievement]').forEach(item => {
+        const unlocked=state.achievements.includes(item.dataset.achievement);
+        item.classList.toggle('unlocked',unlocked);
+        item.querySelector('small').textContent=unlocked ? '획득 완료 · 보상 없음' : '미달성 · 보상 없음';
+      });
+    }
+    function renderReport(report) {
+      elements.reportEmpty.hidden=Boolean(report); elements.score.hidden=!report; elements.summary.hidden=!report;
+      elements.reportNumber.textContent=report ? '제 '+report.number+'호 발급' : '발급 대기';
+      if (!report) return;
+      elements.reportGrade.textContent=report.grade;
+      elements.reportVerdict.textContent=report.verdict;
+      elements.reportVerdict.classList.toggle('player-wins',report.verdict==='당신 승');
+      elements.reportClicks.textContent=number.format(report.clicks)+'회';
+      elements.reportPeak.textContent=report.peakAnger+'%';
+      elements.reportApologies.textContent=number.format(report.apologies)+'회';
+      elements.reportSaved.textContent=moneyNumber.format(Number(report.saved))+'원';
+      elements.reportRepair.textContent=number.format(report.repair)+'원';
+      elements.reportBalance.textContent=moneyNumber.format(Number(report.balance))+'원';
+      elements.reportLight.textContent=report.finalLight;
+      elements.reportComment.textContent=report.finalLight==='꺼짐' ? '마지막 불빛까지 꺼버렸습니다. 이번에는 당신이 이겼습니다.' : '열심히 누르셨군요. 전기는 계속 들어옵니다.';
+      elements.summary.textContent='성적표 '+report.number+'호 · '+report.clicks+'회 헛수고 / 최종 '+report.finalLight+' / '+report.verdict+' ↓';
+    }
+    function celebrateAchievements(ids) {
+      clearTimeout(achievementTimer);
+      const titles=ids.map(id => ACHIEVEMENTS.find(item => item.id===id).title);
+      elements.announcement.textContent=titles.join(' · ');
+      elements.confetti.replaceChildren();
+      for (let index=0;index<32;index++) {
+        const piece=document.createElement('i'); piece.className='confetti';
+        piece.style.setProperty('--x',(index*100/32)+'%');
+        piece.style.setProperty('--color',['#d6fa70','#ff916b','#ffe389','#8b78dc'][index%4]);
+        piece.style.setProperty('--delay',(Math.random()*.25)+'s');
+        piece.style.setProperty('--drift',(Math.random()*120-60)+'px');
+        elements.confetti.append(piece);
+      }
+      elements.celebration.hidden=false;
+      achievementTimer=setTimeout(() => { elements.celebration.hidden=true; elements.confetti.replaceChildren(); achievementTimer=null; },2400);
+    }
+    function updateCalmCountdown(state=game.getSnapshot()) {
+      const seconds=Math.ceil(state.calmRemainingMs/1000);
+      elements.calmCountdown.textContent=state.calmRemainingMs>0
+        ? '평온해지기까지 '+String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0')
+        : '100%가 되면 30초 후 평온해집니다.';
+    }
+    function syncCalmCountdown(state) {
+      updateCalmCountdown(state);
+      if (state.calmRemainingMs>0 && calmUiTimer===null) calmUiTimer=setInterval(() => updateCalmCountdown(),1000);
+      if (!state.calmRemainingMs && calmUiTimer!==null) { clearInterval(calmUiTimer); calmUiTimer=null; }
+    }
+    function say(text) { elements.quote.textContent='“'+text+'”'; }
+    function handleChange(state,message) {
+      render(state);
+      if (message.reason==='off') {
+        elements.button.classList.remove('kick'); void elements.button.offsetWidth; elements.button.classList.add('kick');
+        later(() => elements.button.classList.remove('kick'),160);
+        const float=document.createElement('span'); float.className='click-float'; float.textContent='+1 헛수고';
+        float.style.left=elements.dock.style.left || '50%';
+        float.style.top=Math.max(32,elements.dock.offsetTop-90)+'px';
+        elements.surface.append(float); later(() => float.remove(),650);
+        if (state.stage===3) {
+          elements.app.classList.remove('shake'); void elements.app.offsetWidth; elements.app.classList.add('shake');
+          later(() => elements.app.classList.remove('shake'),320);
+        }
+        if (message.candleReached) {
+          say(LINES[3][0]); showToast('100% 달성! 30초 뒤 평온해집니다. 그 전에 마지막 촛불을 꺼보세요.',3000);
+          elements.eventLabel.textContent='해탈 달성';
+          elements.eventMessage.textContent='분노 100%. 마지막 촛불을 직접 누르면 5단계 완전 암전입니다.';
+        } else if (state.candle) say(LINES[3][state.count%2]);
+      }
+      if (message.reason==='restore') {
+        clickSound(true);
+        const backupLines={ lamp:['전등 끄면 스탠드 켜면 되지.','스탠드도 우리 집 식구야!'],fridge:['냉장고 문만 열어도 환하다.','우유까지 밝게 살고 싶대.'] };
+        say(backupLines[state.lightSource] ? backupLines[state.lightSource][Math.floor(state.count/3)%2] : LINES[state.stage-1][(state.count-1)%2]);
+        if (!state.event) {
+          elements.eventLabel.textContent='집주인 반격';
+          elements.eventMessage.textContent=(message.delay/1000).toFixed(2)+'초 만에 '+({ lamp:'스탠드',fridge:'냉장고 조명',ceiling:'전등' }[state.lightSource])+' 켜기 성공. 수리비 300원은 당신 몫입니다.';
+        }
+      }
+      if (message.reason==='tape') { beep(); showToast('테이프가 버팁니다. '+state.tapeRemaining+'번 더!'); }
+      if (message.reason==='event-end') {
+        elements.eventLabel.textContent='방해 종료';
+        elements.eventMessage.textContent=EVENT_INFO[message.type][0]+' 종료. 집주인의 다음 방해를 기대하지 마세요.';
+      }
+      if (message.reason==='calm-down') {
+        say('후... 다시 평온해졌다.');
+        elements.app.classList.remove('shake');
+        elements.report.classList.remove('report-reveal'); void elements.report.offsetWidth; elements.report.classList.add('report-reveal');
+        later(() => elements.report.classList.remove('report-reveal'),450);
+        showToast('100% 달성 후 30초 완료! 분노 0%. 판정: '+state.lastReport.verdict,3000);
+        if (!state.event) {
+          elements.eventLabel.textContent='분노 초기화';
+          elements.eventMessage.textContent='성적표 '+state.lastReport.number+'호 발급. '+state.lastReport.clicks+'회 헛수고 / 최종 '+state.lastReport.finalLight+' / '+state.lastReport.verdict+'. 누적 기록은 유지됩니다.';
+        }
+      }
+      if (message.reason==='purchase') { clickSound(); say('번쩍번쩍하네. 그래서 뭐?'); showToast('황금 스위치 장착! 성능 0% 변화, 허영심 +200%.',2600); }
+      if (message.reason==='apology') say('음... 미안하다고?');
+      if (message.reason==='apology-backfire') {
+        say(message.candleReached ? '미안한 사람이 계속 눌러? 됐다. 촛불 켠다.' : '미안한 사람이 계속 눌러?');
+        beep(); showToast('사과의 역효과! 잠깐 -1% 뒤 분노 +6%.',2200);
+        if (state.stage>=3) { elements.app.classList.add('shake'); later(() => elements.app.classList.remove('shake'),320); }
+      }
+      if (message.reason==='blackout') {
+        say(LINES[4][0]);
+        for (const id of animationTimers) clearTimeout(id); animationTimers.clear();
+        clearTimeout(toastTimer); elements.toast.hidden=true;
+        clearTimeout(achievementTimer); achievementTimer=null;
+        elements.celebration.hidden=true; elements.confetti.replaceChildren();
+        elements.surface.querySelectorAll('.click-float').forEach(node => node.remove());
+        elements.app.classList.remove('shake'); elements.button.classList.remove('kick');
+        elements.eventLabel.textContent='5단계 완전 암전';
+        elements.eventMessage.textContent='마지막 촛불도 껐습니다. 이번에는 당신이 이겼습니다.';
+      }
+      if (message.reason==='reset') {
+        for (const id of animationTimers) clearTimeout(id); animationTimers.clear();
+        clearTimeout(toastTimer); elements.toast.hidden=true;
+        clearTimeout(achievementTimer); achievementTimer=null;
+        elements.celebration.hidden=true; elements.confetti.replaceChildren(); elements.report.classList.remove('report-reveal');
+        elements.surface.querySelectorAll('.click-float').forEach(node => node.remove());
+        elements.app.classList.remove('shake'); elements.button.classList.remove('kick');
+        say('전기세는 내가 내는데?');
+        elements.eventLabel.textContent='민원 접수 대기';
+        elements.eventMessage.textContent='매 클릭마다 15% 확률로 집주인의 방해 공작이 시작됩니다.';
+      }
+      if (message.unlocked && message.unlocked.length) celebrateAchievements(message.unlocked);
+    }
+    function pressSwitch(event) {
+      if (!isDirectPointerClick(event)) return;
+      const state=game.getSnapshot();
+      if (!state.lit || (state.event && MODAL_TYPES.has(state.event.type))) return;
+      clickSound(); game.press();
+    }
+    function hideDialogs() {
+      const wasOpen=!elements.backdrop.hidden || !elements.bsod.hidden;
+      elements.backdrop.hidden=true; elements.bsod.hidden=true;
+      elements.app.inert=false; document.body.style.overflow='';
+      if (wasOpen) {
+        const focus=focusBeforeDialog && focusBeforeDialog.isConnected && focusBeforeDialog.getClientRects().length ? focusBeforeDialog : elements.button;
+        focus.focus({ preventScroll:true }); focusBeforeDialog=null;
+      }
+    }
+    function clearEventVisuals() {
+      clearInterval(eventUiTimer); eventUiTimer=null;
+      elements.card.classList.remove('inverted');
+      elements.dock.style.left='50%'; elements.dock.style.top='56%';
+      elements.flies.hidden=true; elements.club.hidden=true; document.body.classList.remove('party');
+      hideDialogs();
+    }
+    function teleportSwitch() {
+      const width=elements.surface.clientWidth, height=elements.surface.clientHeight;
+      const marginX=elements.dock.offsetWidth/2+14, marginY=elements.dock.offsetHeight/2+13;
+      // Pick opposite horizontal corners, keeping the whole switch inside its play area.
+      const side=Math.random()<.5;
+      const x=side ? marginX : width-marginX;
+      const y=marginY+Math.random()*Math.max(0,height-marginY-46-marginY);
+      elements.dock.style.left=Math.max(marginX,Math.min(width-marginX,x))+'px';
+      elements.dock.style.top=Math.max(marginY,Math.min(height-marginY-30,y))+'px';
+    }
+    function showDialog(content,className='') {
+      focusBeforeDialog=document.activeElement;
+      elements.modal.className='modal '+className; elements.modal.innerHTML=content;
+      elements.app.inert=true; elements.backdrop.hidden=false; document.body.style.overflow='hidden';
+      const first=elements.modal.querySelector('button:not([disabled]),input:not([disabled])');
+      (first || elements.modal).focus({ preventScroll:true });
+      elements.modal.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click',() => game.dismissEvent()));
+    }
+    function dialogShell(label,body,close=true) {
+      return '<div class="modal-header"><span>'+label+'</span>'+(close ? '<button class="modal-close" data-close type="button" aria-label="팝업 닫기">×</button>' : '<span>자동 복구 중</span>')+'</div><div class="modal-body">'+body+'</div>';
+    }
+    function showEvent(event) {
+      beep();
+      const [label,description]=EVENT_INFO[event.type];
+      elements.eventLabel.textContent=label; elements.eventMessage.textContent=description;
+      if (event.type==='escape') { teleportSwitch(); showToast('스위치가 도망쳤습니다. 집주인: 잡아봐.'); }
+      if (event.type==='invert') { elements.card.classList.add('inverted'); showToast('거꾸로 봐도 쓸모는 그대로.'); }
+      if (event.type==='fly') { elements.flies.hidden=false; showToast('파리까지 집주인 편이라고?'); }
+      if (event.type==='tape') showToast('테이프 등장! 3번 눌러 떼세요.');
+      if (event.type==='disco') { elements.club.hidden=false; document.body.classList.add('party'); showToast('강제 댄스 타임 · 3초'); }
+      if (event.type==='captcha') {
+        showDialog(dialogShell('보안팀도 할 일이 없나 봅니다.',
+          '<div class="modal-icon" aria-hidden="true">☑</div><h2 id="modal-title">당신은 로봇입니까?</h2><p>인간이라면 이런 쓸데없는 일을 반복할 리 없는데요.<br>계속하려면 아래 항목을 체크하세요.</p><label class="check-row"><input id="captcha-check" type="checkbox">불을 끄고 싶은 열정</label><button class="primary-button" id="captcha-submit" type="button" disabled>쓸데없는 열정 인증하기</button><p class="modal-note">로봇보다 집주인이 더 무섭습니다. · ESC로 닫기</p>'));
+        $('captcha-check').addEventListener('change',event => { $('captcha-submit').disabled=!event.target.checked; });
+        $('captcha-submit').addEventListener('click',() => game.dismissEvent());
+      }
+      if (event.type==='ad') {
+        showDialog('<div class="modal-header"><span>쓸모일보 / 전면 광고</span><span class="ad-fake-caption">누르기 좋아 보이는 X →</span><button class="modal-close" id="fake-ad-close" type="button" aria-label="수상한 광고 X 버튼">×</button></div><div class="modal-body"><div class="modal-eyebrow">집주인도 인정한 역대급 절약법</div><h2 id="modal-title">국밥까지<br>딱 12억 번.</h2><div class="ad-bowl" aria-hidden="true">🍲</div><p>오늘부터 매일 10만 번!<br>약 34년 뒤, 당신도 국밥 오너.</p><span class="ad-deal">효율 0.0004원 / 클릭 · 조급함 무료 증정</span><br><button class="ad-real-close" data-close type="button">광고 닫기 (이건 진짜입니다)</button><p class="modal-note">게임 속 가짜 광고입니다. · ESC로도 닫을 수 있습니다.</p></div>','ad-modal');
+        let fakeClicks=0;
+        $('fake-ad-close').addEventListener('click',() => {
+          fakeClicks++; beep();
+          showToast(['그 X는 장식입니다. 킹받으셨죠?','한 번 더 눌러도 장식입니다.','아래에 진짜 닫기 버튼이 있습니다.'][Math.min(2,fakeClicks-1)]);
+          $('fake-ad-close').style.transform='rotate('+(fakeClicks*30)+'deg)';
+        });
+      }
+      if (event.type==='consent') {
+        showDialog(dialogShell('약관을 읽으셨습니까? 저희도 안 읽었습니다.',
+          '<div class="modal-eyebrow">전등 스위치 작동에 관한 개인정보 처리방침</div><h2 id="modal-title">불 하나 끄는데<br>동의할 게 참 많죠.</h2><div class="policy"><p><strong>제1조. 헛수고의 수집</strong><br>귀하의 클릭 횟수, 집주인의 한숨, 무의미한 성취감을 게임 화면에서 집계합니다.</p><p><strong>제2조. 목적</strong><br>딱히 없습니다. 약관이 있어 보이길래 썼습니다.</p><p><strong>제3조. 개인정보</strong><br>이름, 연락처 등 개인정보를 받지 않습니다. 이 게임은 정보를 전송하거나 저장하지 않습니다.</p><p><strong>제4조. 불의 소유권</strong><br>집주인이 내는데 왜 당신이 끕니까? 집주인은 언제든 불을 다시 켤 수 있습니다.</p><p><strong>제5조. 국밥</strong><br>실제 국밥은 지급되지 않습니다. 배고프면 식사부터 하세요.</p></div><label class="check-row"><input id="consent-check" type="checkbox">이 헛수고에 자발적으로 동의합니다.</label><button class="primary-button" id="consent-submit" type="button" disabled>동의하고 계속 헛수고하기</button><p class="modal-note">가짜 게임 약관입니다. 서명이나 개인정보는 받지 않습니다. · ESC로 닫기</p>'));
+        $('consent-check').addEventListener('change',event => { $('consent-submit').disabled=!event.target.checked; });
+        $('consent-submit').addEventListener('click',() => game.dismissEvent());
+      }
+      if (event.type==='maintenance') {
+        showDialog(dialogShell('전력 관리 센터 / 불필요한 긴급 점검',
+          '<div class="modal-icon" aria-hidden="true">⚡</div><h2 id="modal-title">전력 과부하로<br>3초간 서버 점검 중...</h2><p>스위치 하나에 서버가 왜 필요하냐고요?<br>좋은 질문입니다. 다음 질문 받겠습니다.</p><div class="maintenance-number"><span id="maintenance-count">3</span><small style="font-size:18px">초</small></div><div class="maintenance-bar"><div id="maintenance-progress"></div></div><p class="modal-note">이건 게임 연출입니다. 실제 서버는 점검하지 않습니다.</p>',false));
+        const tick=() => { const elapsed=Date.now()-event.started; $('maintenance-count').textContent=String(Math.max(0,Math.ceil((3000-elapsed)/1000))); $('maintenance-progress').style.width=Math.min(100,elapsed/30)+'%'; };
+        tick(); eventUiTimer=setInterval(tick,100);
+      }
+      if (event.type==='bsod') {
+        focusBeforeDialog=document.activeElement; elements.app.inert=true; document.body.style.overflow='hidden';
+        elements.bsod.hidden=false; $('bsod-progress').textContent='0'; elements.bsod.focus({ preventScroll:true });
+        eventUiTimer=setInterval(() => { $('bsod-progress').textContent=String(Math.min(100,Math.floor((Date.now()-event.started)/10))); },80);
+      }
+    }
+    elements.button.addEventListener('click',pressSwitch);
+    elements.candle.addEventListener('click',event => { if (isDirectPointerClick(event) && game.extinguishCandle()) clickSound(); });
+    elements.buy.addEventListener('click',event => { if (isDirectPointerClick(event)) game.buyGolden(); });
+    elements.apology.addEventListener('click',event => { if (isDirectPointerClick(event)) game.apologize(); });
+    elements.reset.addEventListener('click',() => { game.reset(); showToast('처음부터 다시. 이번에도 아무 쓸모 없을 예정입니다.'); });
+    elements.sound.addEventListener('click',() => {
+      muted=!muted; elements.sound.setAttribute('aria-pressed',String(muted));
+      elements.sound.textContent=muted ? '효과음 꺼짐' : '효과음 켜짐';
+      elements.sound.title=muted ? '효과음 켜기' : '효과음 음소거';
+      if (muted && audioContext && audioContext.state==='running') audioContext.suspend().catch(() => {});
+      if (!muted) clickSound();
+    });
+    elements.flies.querySelectorAll('button').forEach(button => button.addEventListener('click',event => {
+      event.stopPropagation(); beep(); showToast('파리: 여기는 내 자리인데?');
+    }));
+    document.addEventListener('keydown',event => {
+      if ([elements.button,elements.candle,elements.buy,elements.apology].includes(event.target) && (event.code==='Space' || event.key===' ' || event.key==='Enter')) {
+        event.preventDefault(); return;
+      }
+      const state=game.getSnapshot();
+      const dialogOpen=state.event && MODAL_TYPES.has(state.event.type);
+      if (dialogOpen) {
+        if (event.key==='Escape') { event.preventDefault(); game.dismissEvent(); return; }
+        if (event.key==='Tab') {
+          const container=state.event.type==='bsod' ? elements.bsod : elements.modal;
+          const focusable=[...container.querySelectorAll('button:not([disabled]),input:not([disabled]),[tabindex="0"]')].filter(node => node.getClientRects().length);
+          if (!focusable.length) { event.preventDefault(); container.focus(); return; }
+          const first=focusable[0], last=focusable[focusable.length-1];
+          if (event.shiftKey && (document.activeElement===first || document.activeElement===container)) { event.preventDefault(); last.focus(); }
+          else if (!event.shiftKey && (document.activeElement===last || document.activeElement===container)) { event.preventDefault(); first.focus(); }
+        }
+        // Space keeps its native checkbox/button behavior inside dialogs.
+        if ((event.code==='Space' || event.key===' ') && state.event.type==='bsod') event.preventDefault();
+        return;
+      }
+    });
+    window.addEventListener('resize',() => { if (game.getSnapshot().event?.type==='escape') teleportSwitch(); });
+    // Cancel every pending effect when leaving; a restored back/forward page resets cleanly.
+    window.addEventListener('pagehide',() => {
+      game.reset(); for (const id of animationTimers) clearTimeout(id); animationTimers.clear();
+      clearTimeout(toastTimer); clearInterval(eventUiTimer);
+      if (audioContext) audioContext.suspend().catch(() => {});
+    });
+    render(game.getSnapshot());
+  })();
+  </script>
+</body>
+</html>
